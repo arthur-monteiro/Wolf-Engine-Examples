@@ -4,7 +4,7 @@
 #include "Attachment.h"
 #include "Semaphore.h"
 #include "Image.h"
-#include "UniformBufferObject.h"
+#include "UniformBuffer.h"
 #include "Texture.h"
 #include "Pipeline.h"
 #include "VulkanElement.h"

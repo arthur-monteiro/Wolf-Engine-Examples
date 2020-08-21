@@ -94,19 +94,22 @@ int main()
 	rendererCreateInfo.pipelineCreateInfo.extent = { WINDOW_WIDTH, WINDOW_HEIGHT };
 	rendererCreateInfo.pipelineCreateInfo.alphaBlending = { false };
 
-	// Define the layout of the uniform buffer (the same as defined in the shader)
-	DescriptorLayout uniformBufferLayout{};
-	uniformBufferLayout.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	uniformBufferLayout.accessibility = VK_SHADER_STAGE_VERTEX_BIT;
-	uniformBufferLayout.binding = 0;
-	rendererCreateInfo.descriptorLayouts.push_back(uniformBufferLayout);
+	// Create the descriptor set (will generate layout and descriptor set)
+	// Create the uniform buffer
+	float offset = 0.0f;
+	UniformBuffer* uniformBuffer = instance.createUniformBufferObject(&offset, sizeof(float));
 
-	// Define the layout of the texture (the same as defined in the shader)
-	DescriptorLayout textureLayout{};
-	textureLayout.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	textureLayout.accessibility = VK_SHADER_STAGE_FRAGMENT_BIT;
-	textureLayout.binding = 1;
-	rendererCreateInfo.descriptorLayouts.push_back(textureLayout);
+	// Create the texture
+	Image* image = instance.createImageFromFile("Images/texture.jpg");
+	Sampler* sampler = instance.createSampler(VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER, 1.0f, VK_FILTER_LINEAR);
+
+	// Generate the descriptor set definition
+	DescriptorSetGenerator descriptorSetGenerator{};
+	descriptorSetGenerator.addUniformBuffer(uniformBuffer, VK_SHADER_STAGE_VERTEX_BIT, 0);
+	descriptorSetGenerator.addCombinedImageSampler(image, sampler, VK_SHADER_STAGE_FRAGMENT_BIT, 1);
+
+	// Get layouts
+	rendererCreateInfo.descriptorLayouts = descriptorSetGenerator.getDescriptorLayouts();
 
 	int rendererID = scene->addRenderer(rendererCreateInfo);
 
@@ -116,18 +119,7 @@ int main()
 	addMeshInfo.rendererID = rendererID;
 	addMeshInfo.vertexBuffer = model->getVertexBuffers()[0];
 
-	// Create and bind the uniform buffer
-	UniformBufferObject* uniformBuffer = instance.createUniformBufferObject();
-	float offset = 0.0f;
-	uniformBuffer->initializeData(&offset, sizeof(float));
-
-	// Create and bind the texture
-	Image* image = instance.createImageFromFile("Images/texture.jpg");
-	Sampler* sampler = instance.createSampler(VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER, 1.0f, VK_FILTER_LINEAR);
-
-	DescriptorSetGenerator descriptorSetGenerator{};
-	descriptorSetGenerator.addUniformBuffer(uniformBuffer, VK_SHADER_STAGE_VERTEX_BIT, 0);
-	descriptorSetGenerator.addCombinedImageSampler(image, sampler, VK_SHADER_STAGE_FRAGMENT_BIT, 1);
+	// Get descriptor set definition
 	addMeshInfo.descriptorSetCreateInfo = descriptorSetGenerator.getDescritorSetCreateInfo();
 
 	scene->addMesh(addMeshInfo);

@@ -43,7 +43,7 @@ namespace Wolf
 		int m_voxelisationRendererID = -1;
 		Texture* m_voxelTexture;
 
-		UniformBufferObject* m_uboVoxelization;
+		UniformBuffer* m_uboVoxelization;
 		std::array<glm::mat4, 3> m_projections;
 
 		std::vector<Attachment> m_attachments;
@@ -53,7 +53,7 @@ namespace Wolf
 		int m_viewerBufferID = -2;
 		int m_viewerComputePassID = -1;
 		Texture* m_viewerOutput;
-		UniformBufferObject* m_uboVoxelViewer;
+		UniformBuffer* m_uboVoxelViewer;
 		std::array<glm::mat4, 3> m_voxelViewerMatrices;
 
 		/* Clear */
@@ -66,7 +66,7 @@ namespace Wolf
 		int m_injectionRendererID = -1;
 
 		std::array<Texture*, 7> m_injectionTextures;
-		UniformBufferObject* m_uboInjection;
+		UniformBuffer* m_uboInjection;
 
 		struct InjectionUBO
 		{
@@ -88,7 +88,7 @@ namespace Wolf
 		int m_rsmRenderPassID = -1;
 		int m_rsmRendererID = -1;
 
-		UniformBufferObject* m_uboRSM;
+		UniformBuffer* m_uboRSM;
 		glm::mat4 m_rsmMatrix;
 
 		std::vector<Attachment> m_rsmAttachments;
@@ -98,7 +98,7 @@ namespace Wolf
 		Texture* m_lightVolumesInjectionDirTexture;
 		int m_injectionCommandBufferID = -2;
 		int m_injectionComputePassID = -1;
-		UniformBufferObject* m_uboInjection;
+		UniformBuffer* m_uboInjection;
 		struct UniformBufferObjectInjection
 		{
 			glm::mat4 voxelProjection;

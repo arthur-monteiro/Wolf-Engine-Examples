@@ -85,8 +85,6 @@ int Wolf::Scene::addComputePass(ComputePassCreateInfo createInfo)
 {
 	m_sceneComputePasses.emplace_back(createInfo.commandBufferID, createInfo.outputIsSwapChain);
 
-	updateDescriptorPool(createInfo.descriptorSetCreateInfo);
-
 	if(!createInfo.outputIsSwapChain)
 	{
 		m_sceneComputePasses.back().computePasses.resize(1);
@@ -95,6 +93,8 @@ int Wolf::Scene::addComputePass(ComputePassCreateInfo createInfo)
 	}
 	else
 	{
+		m_descriptorPool.addStorageImage(m_swapChainImages.size());
+		
 		m_sceneComputePasses.back().computePasses.resize(m_swapChainImages.size());
 		for(size_t i(0); i < m_swapChainImages.size(); ++i)
 		{
@@ -113,14 +113,17 @@ int Wolf::Scene::addComputePass(ComputePassCreateInfo createInfo)
 			
 			images.push_back({ { swapChainImageData }, swapChainImageLayout });
 
-			createInfo.descriptorSetCreateInfo.descriptorImages = images;
+			auto tempDescriptorSetCreateInfo = createInfo.descriptorSetCreateInfo;
+			tempDescriptorSetCreateInfo.descriptorImages = images;
 
 			m_sceneComputePasses.back().computePasses[i] = std::make_unique<ComputePass>(m_device, m_physicalDevice, m_computeCommandPool, createInfo.computeShaderPath,
-				createInfo.descriptorSetCreateInfo);
+				tempDescriptorSetCreateInfo);
 		}
 
 		createInfo.extent = { m_swapChainImages[0]->getExtent().width, m_swapChainImages[0]->getExtent().height };
 	}
+	updateDescriptorPool(createInfo.descriptorSetCreateInfo);
+	
 	m_sceneComputePasses.back().extent = createInfo.extent;
 	m_sceneComputePasses.back().dispatchGroups = createInfo.dispatchGroups;
 

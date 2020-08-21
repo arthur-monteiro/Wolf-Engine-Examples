@@ -47,9 +47,13 @@ VkDescriptorSet Wolf::createDescriptorSet(VkDevice device, VkDescriptorSetLayout
 		descriptorImageInfos[i].resize(descriptorSetCreateInfo.descriptorImages[i].first.size());
 		for (int j(0); j < descriptorImageInfos[i].size(); ++j)
 		{
-			descriptorImageInfos[i][j].imageLayout = descriptorSetCreateInfo.descriptorImages[i].first[j].image->getImageLayout();
-			descriptorImageInfos[i][j].imageView = descriptorSetCreateInfo.descriptorImages[i].first[j].image->getImageView();
-			descriptorImageInfos[i][j].sampler = descriptorSetCreateInfo.descriptorImages[i].first[j].sampler->getSampler();
+			if(descriptorSetCreateInfo.descriptorImages[i].first[j].image)
+			{
+				descriptorImageInfos[i][j].imageLayout = descriptorSetCreateInfo.descriptorImages[i].first[j].image->getImageLayout();
+				descriptorImageInfos[i][j].imageView = descriptorSetCreateInfo.descriptorImages[i].first[j].image->getImageView();
+			}
+			if(descriptorSetCreateInfo.descriptorImages[i].first[j].sampler)
+				descriptorImageInfos[i][j].sampler = descriptorSetCreateInfo.descriptorImages[i].first[j].sampler->getSampler();
 		}
 
 		VkWriteDescriptorSet descriptorWrite;
@@ -70,7 +74,7 @@ VkDescriptorSet Wolf::createDescriptorSet(VkDevice device, VkDescriptorSetLayout
 	return descriptorSet;
 }
 
-void Wolf::DescriptorSetGenerator::addUniformBuffer(UniformBufferObject* ubo, VkShaderStageFlags accessibility,
+void Wolf::DescriptorSetGenerator::addUniformBuffer(UniformBuffer* ubo, VkShaderStageFlags accessibility,
 	uint32_t binding)
 {
 	DescriptorSetCreateInfo::BufferData bufferData;
@@ -141,4 +145,17 @@ void Wolf::DescriptorSetGenerator::addSampler(Sampler* sampler, VkShaderStageFla
 			{ imageData },
 			descriptorLayout
 		});
+}
+
+std::vector<Wolf::DescriptorLayout> Wolf::DescriptorSetGenerator::getDescriptorLayouts()
+{
+	std::vector<Wolf::DescriptorLayout> r(m_descriptorSetCreateInfo.descriptorImages.size() + m_descriptorSetCreateInfo.descriptorBuffers.size());
+	
+	int i = 0;
+	for (auto& descriptorImage : m_descriptorSetCreateInfo.descriptorImages)
+		r[i++] = descriptorImage.second;
+	for (auto& descriptorBuffer : m_descriptorSetCreateInfo.descriptorBuffers)
+		r[i++] = descriptorBuffer.second;
+
+	return r;
 }

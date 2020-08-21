@@ -98,7 +98,7 @@ namespace Wolf
 			glm::vec4 cascadeSplits;
 		};
 		ShadowMaskUBO m_uboData;
-		UniformBufferObject* m_ubo;
+		UniformBuffer* m_ubo;
 		
 		std::vector<float> m_cascadeSplits;
 		std::vector<VkExtent2D> m_shadowMapExtents;

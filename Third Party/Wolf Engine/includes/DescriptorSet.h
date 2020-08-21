@@ -2,7 +2,7 @@
 
 #include "Image.h"
 #include "Sampler.h"
-#include "UniformBufferObject.h"
+#include "UniformBuffer.h"
 #include "VulkanHelper.h"
 
 namespace Wolf
@@ -27,8 +27,8 @@ namespace Wolf
 
 		struct ImageData
 		{
-			Image* image;
-			Sampler* sampler;
+			Image* image = nullptr;
+			Sampler* sampler = nullptr;
 		};
 		std::vector<std::pair<std::vector<ImageData>, DescriptorLayout>> descriptorImages;
 	};
@@ -38,12 +38,13 @@ namespace Wolf
 	class DescriptorSetGenerator
 	{
 	public:
-		void addUniformBuffer(UniformBufferObject* ubo, VkShaderStageFlags accessibility, uint32_t binding);
+		void addUniformBuffer(UniformBuffer* ubo, VkShaderStageFlags accessibility, uint32_t binding);
 		void addImages(std::vector<Image*> images, VkDescriptorType descriptorType, VkShaderStageFlags accessibility, uint32_t binding);
 		void addCombinedImageSampler(Image* image, Sampler* sampler, VkShaderStageFlags accessibility, uint32_t binding);
 		void addSampler(Sampler* sampler, VkShaderStageFlags accessibility, uint32_t binding);
 		
 		DescriptorSetCreateInfo getDescritorSetCreateInfo() { return m_descriptorSetCreateInfo; }
+		std::vector<DescriptorLayout> getDescriptorLayouts();
 		
 	private:
 		DescriptorSetCreateInfo m_descriptorSetCreateInfo;
