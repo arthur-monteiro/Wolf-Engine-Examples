@@ -33,7 +33,7 @@ namespace Wolf
 		void buildPropagation();
 
 	private:
-		const uint32_t VOXEL_SIZE = 32.0f;
+		const uint32_t VOXEL_SIZE = 32;
 		
 		Wolf::WolfInstance* m_engineInstance;
 		Wolf::Scene* m_scene;

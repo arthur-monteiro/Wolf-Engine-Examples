@@ -14,7 +14,7 @@ std::vector<Wolf::Image*> Wolf::Model::getImages()
 {
 	std::vector<Image*> r(m_images.size());
 	for (size_t i(0); i < m_images.size(); ++i)
-		r[i] = &m_images[i];
+		r[i] = m_images[i].get();
 
 	return r;
 }

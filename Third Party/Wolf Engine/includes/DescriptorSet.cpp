@@ -34,7 +34,7 @@ VkDescriptorSet Wolf::createDescriptorSet(VkDevice device, VkDescriptorSetLayout
 		descriptorWrite.dstBinding = descriptorSetCreateInfo.descriptorBuffers[i].second.binding;
 		descriptorWrite.dstArrayElement = 0;
 		descriptorWrite.descriptorType = descriptorSetCreateInfo.descriptorBuffers[i].second.descriptorType;
-		descriptorWrite.descriptorCount = descriptorBufferInfos[i].size();
+		descriptorWrite.descriptorCount = static_cast<uint32_t>(descriptorBufferInfos[i].size());
 		descriptorWrite.pBufferInfo = descriptorBufferInfos[i].data();
 		descriptorWrite.pNext = NULL;
 
@@ -105,7 +105,7 @@ void Wolf::DescriptorSetGenerator::addImages(std::vector<Image*> images, VkDescr
 	descriptorLayout.accessibility = accessibility;
 	descriptorLayout.binding = binding;
 	descriptorLayout.descriptorType = descriptorType;
-	descriptorLayout.count = images.size();
+	descriptorLayout.count = static_cast<uint32_t>(images.size());
 
 	m_descriptorSetCreateInfo.descriptorImages.emplace_back(
 		imageData,

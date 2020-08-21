@@ -47,7 +47,7 @@ namespace Wolf
 
 		InputVertexTemplate m_inputVertexTemplate;
 
-		std::vector<Image> m_images;
+		std::vector<std::unique_ptr<Image>> m_images;
 		std::unique_ptr<Sampler> m_sampler;
 	};
 }

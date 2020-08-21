@@ -27,7 +27,7 @@ namespace Wolf
 		VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
 		// Viewport
-		VkExtent2D extent;
+		VkExtent2D extent = {0, 0 };
 		std::array<float, 2> viewportScale = { 1.0f, 1.0f };
 		std::array<float, 2> viewportOffset = { 0.0f, 0.0f };
 
