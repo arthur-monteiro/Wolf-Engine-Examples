@@ -1,0 +1,21 @@
+#version 460
+#extension GL_NV_ray_tracing : require
+
+layout(binding = 0, set = 0) uniform accelerationStructureNV topLevelAS;
+layout(binding = 1, set = 0, rgba8) uniform image2D image;
+
+layout(location = 0) rayPayloadNV vec3 hitValue;
+
+void main() 
+{
+    const vec2 pixelPos = vec2(gl_LaunchIDNV.xy);
+    const vec2 inUV = pixelPos / vec2(gl_LaunchSizeNV.xy);
+    vec2 d = inUV * 2.0 - 1.0;
+
+    float tmin = 0.001;
+    float tmax = 10000.0;
+
+    traceNV(topLevelAS, gl_RayFlagsOpaqueNV, 0xff, 0 /*sbtRecordOffset*/, 0 /*sbtRecordStride*/, 0 /*missIndex*/, vec3(d.x, d.y, -1.0), tmin, vec3(0, 0, 1), tmax, 0 /*payload*/);
+
+    imageStore(image, ivec2(gl_LaunchIDNV.xy), vec4(hitValue, 0.0));
+}

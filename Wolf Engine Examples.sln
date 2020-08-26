@@ -11,6 +11,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Compute Pass", "Compute Pas
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Text Rendering", "Text Rendering\Text Rendering.vcxproj", "{DBD90862-7C94-43BB-A101-AB1382EBDC99}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Ray Tracing", "Ray Tracing\Ray Tracing.vcxproj", "{5A6C644A-E81E-481D-8EF1-DF498B2417A7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -51,6 +53,14 @@ Global
 		{DBD90862-7C94-43BB-A101-AB1382EBDC99}.Release|x64.Build.0 = Release|x64
 		{DBD90862-7C94-43BB-A101-AB1382EBDC99}.Release|x86.ActiveCfg = Release|Win32
 		{DBD90862-7C94-43BB-A101-AB1382EBDC99}.Release|x86.Build.0 = Release|Win32
+		{5A6C644A-E81E-481D-8EF1-DF498B2417A7}.Debug|x64.ActiveCfg = Debug|x64
+		{5A6C644A-E81E-481D-8EF1-DF498B2417A7}.Debug|x64.Build.0 = Debug|x64
+		{5A6C644A-E81E-481D-8EF1-DF498B2417A7}.Debug|x86.ActiveCfg = Debug|Win32
+		{5A6C644A-E81E-481D-8EF1-DF498B2417A7}.Debug|x86.Build.0 = Debug|Win32
+		{5A6C644A-E81E-481D-8EF1-DF498B2417A7}.Release|x64.ActiveCfg = Release|x64
+		{5A6C644A-E81E-481D-8EF1-DF498B2417A7}.Release|x64.Build.0 = Release|x64
+		{5A6C644A-E81E-481D-8EF1-DF498B2417A7}.Release|x86.ActiveCfg = Release|Win32
+		{5A6C644A-E81E-481D-8EF1-DF498B2417A7}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
