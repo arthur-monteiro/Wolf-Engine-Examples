@@ -1,0 +1,79 @@
+#version 460
+#extension GL_NV_ray_tracing : require
+
+layout(binding = 0, set = 0) uniform accelerationStructureNV topLevelAS;
+layout(binding = 1, set = 0, rgba8) uniform image2D image;
+layout(binding = 2, set = 0) uniform CameraProperties
+{
+    mat4 viewInverse;
+    mat4 projInverse;
+    mat4 model;
+    mat4 view;
+    vec4 position;
+} cam;
+
+struct CommonPayload
+{
+    // From raygen values
+    vec3 rayOrigin;
+
+    // From closest hit values
+    vec3 value;
+    vec3 origin;
+    vec3 direction;
+    vec3 kS;
+};
+
+layout(location = 0) rayPayloadNV CommonPayload payload;
+
+float A = 0.15;
+float B = 0.50;
+float C = 0.10;
+float D = 0.20;
+float E = 0.02;
+float F = 0.30;
+float W = 11.2;
+
+vec3 Uncharted2Tonemap(vec3 x)
+{
+   return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
+}
+
+void main() 
+{
+    const vec2 pixelPos = vec2(gl_LaunchIDNV.xy);
+    const vec2 inUV = pixelPos / vec2(gl_LaunchSizeNV.xy);
+    vec2 d = inUV * 2.0 - 1.0;
+
+    vec4 origin = cam.viewInverse * vec4(0, 0, 0, 1);
+    vec4 target = cam.projInverse * vec4(d.x, d.y, 1, 1) ;
+    vec4 direction = cam.viewInverse * vec4(normalize(target.xyz), 0);
+
+    uint rayFlags = gl_RayFlagsOpaqueNV;
+    uint cullMask = 0xff;
+    float tmin = 0.001;
+    float tmax = 10000.0;
+
+    payload.rayOrigin = origin.xyz;
+
+    traceNV(topLevelAS, rayFlags, cullMask, 0 /*sbtRecordOffset*/, 0 /*sbtRecordStride*/, 0 /*missIndex*/, origin.xyz, tmin, direction.xyz, tmax, 0 /*payload*/);
+
+    vec3 color = payload.value;
+    if(color != vec3(0.0) && length(payload.kS) > 0.02)
+    {
+        vec3 kS = payload.kS;
+        payload.rayOrigin = payload.origin;
+
+        traceNV(topLevelAS, rayFlags, cullMask, 0 /*sbtRecordOffset*/, 0 /*sbtRecordStride*/, 0 /*missIndex*/, payload.origin, tmin, payload.direction, tmax, 0 /*payload*/);
+
+        color = color * (1.0 - kS) + payload.value * kS;
+    }
+
+    vec3 curr = Uncharted2Tonemap(1.0 * color);
+    vec3 whiteScale = vec3(1.0) / Uncharted2Tonemap(vec3(W));
+    color = curr * whiteScale;
+
+    color = pow(color, vec3(1.0 / 2.2));
+
+    imageStore(image, ivec2(gl_LaunchIDNV.xy), vec4(color, 0.0));
+}

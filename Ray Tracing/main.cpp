@@ -80,7 +80,7 @@ int main()
 
 	// Ray Tracing Pass creation
 	Scene::RayTracingPassAddInfo rayTracingPassAddInfo;
-	rayTracingPassAddInfo.extent = { WINDOW_WIDTH, WINDOW_HEIGHT };
+	//rayTracingPassAddInfo.extent = { WINDOW_WIDTH, WINDOW_HEIGHT };
 	rayTracingPassAddInfo.commandBufferID = -1;
 	rayTracingPassAddInfo.outputIsSwapChain = true;
 	rayTracingPassAddInfo.outputBinding = 1;
