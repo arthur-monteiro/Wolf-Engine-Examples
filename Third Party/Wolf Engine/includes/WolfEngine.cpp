@@ -23,7 +23,7 @@ Wolf::WolfInstance::WolfInstance(WolfInstanceCreateInfo createInfo)
 	m_useOVR = createInfo.useOVR;
 	if (createInfo.useOVR)
 	{
-		m_ovr = std::make_unique<OVR>(m_vulkan->getDevice(), m_vulkan->getOVRSession(), m_vulkan->getGraphicsLuid());
+		m_ovr = std::make_unique<OVR>(m_vulkan->getDevice(), m_graphicsCommandPool.getCommandPool(), m_vulkan->getGraphicsQueue(), m_vulkan->getOVRSession(), m_vulkan->getGraphicsLuid());
 	}
 }
 
@@ -43,6 +43,13 @@ Wolf::UniformBuffer* Wolf::WolfInstance::createUniformBufferObject(void* data, V
 	return m_uniformBufferObjects[m_uniformBufferObjects.size() - 1].get();
 }
 
+Wolf::Buffer* Wolf::WolfInstance::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryPropertyFlags)
+{
+	m_buffers.push_back(std::make_unique<Buffer>(m_vulkan->getDevice(), m_vulkan->getPhysicalDevice(), m_graphicsCommandPool.getCommandPool(), m_vulkan->getGraphicsQueue(), size, usage, memoryPropertyFlags));
+
+	return m_buffers.back().get();
+}
+
 Wolf::Texture* Wolf::WolfInstance::createTexture()
 {
 	m_textures.push_back(std::make_unique<Texture>(m_vulkan->getDevice(), m_vulkan->getPhysicalDevice(), m_graphicsCommandPool.getCommandPool(), m_vulkan->getGraphicsQueue()));
@@ -58,9 +65,23 @@ Wolf::Image* Wolf::WolfInstance::createImageFromFile(std::string filename)
 	return m_images.back().get();
 }
 
-Wolf::Sampler* Wolf::WolfInstance::createSampler(VkSamplerAddressMode addressMode, float mipLevels, VkFilter filter, float maxAnisotropy)
+Wolf::Image* Wolf::WolfInstance::createImage(VkExtent3D extent, VkImageUsageFlags usage, VkFormat format, VkSampleCountFlagBits sampleCount, VkImageAspectFlags aspect)
 {
-	m_samplers.push_back(std::make_unique<Sampler>(m_vulkan->getDevice(), addressMode, mipLevels, filter, maxAnisotropy));
+	m_images.push_back(std::make_unique<Image>(m_vulkan->getDevice(), m_vulkan->getPhysicalDevice(), m_graphicsCommandPool.getCommandPool(), m_vulkan->getGraphicsQueue(), extent, usage, format, sampleCount, aspect));
+
+	return m_images.back().get();
+}
+
+Wolf::Image* Wolf::WolfInstance::createCubemapFromImages(std::array<Image*, 6> images)
+{
+	m_images.push_back(std::make_unique<Image>(m_vulkan->getDevice(), m_vulkan->getPhysicalDevice(), m_graphicsCommandPool.getCommandPool(), m_vulkan->getGraphicsQueue(), std::move(images)));
+
+	return m_images.back().get();
+}
+
+Wolf::Sampler* Wolf::WolfInstance::createSampler(VkSamplerAddressMode addressMode, float mipLevels, VkFilter filter, float maxAnisotropy, float minLod, float mipLodBias)
+{
+	m_samplers.push_back(std::make_unique<Sampler>(m_vulkan->getDevice(), addressMode, mipLevels, filter, maxAnisotropy, minLod, mipLodBias));
 
 	return m_samplers.back().get();
 }
@@ -126,6 +147,12 @@ void Wolf::WolfInstance::frame(Scene* scene, std::vector<int> commandBufferIDs, 
 	}
 }
 
+void Wolf::WolfInstance::submitCommandBuffers(Scene* scene, std::vector<int> commandBufferIDs, std::vector<std::pair<int, int>> commandBufferSynchronisation)
+{
+	scene->frame(m_vulkan->getGraphicsQueue(), m_vulkan->getComputeQueue(), -1, m_swapChain->getImageAvailableSemaphore(),
+		std::move(commandBufferIDs), std::move(commandBufferSynchronisation), false);
+}
+
 bool Wolf::WolfInstance::windowShouldClose()
 {
 	return glfwWindowShouldClose(m_window->getWindow());
@@ -139,4 +166,12 @@ void Wolf::WolfInstance::waitIdle()
 void Wolf::WolfInstance::resize(int width, int height)
 {
 	m_needResize = true;
+}
+
+VkExtent2D Wolf::WolfInstance::getWindowSize()
+{
+	if (!m_ovr)
+		return { m_swapChain->getImages()[0]->getExtent().width, m_swapChain->getImages()[0]->getExtent().height };
+	else
+		return { m_ovr->getImages()[0]->getExtent().width, m_ovr->getImages()[0]->getExtent().height };
 }

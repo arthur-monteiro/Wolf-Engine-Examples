@@ -91,7 +91,11 @@ int main()
 
 	RayTracingPass::RayTracingPassCreateInfo::HitGroup hitGroup;
 	hitGroup.closestHitShader = "Shaders/rchit.spv";
-	rayTracingPassCreateInfo.hitGroups = { hitGroup };
+
+ 	RayTracingPass::RayTracingPassCreateInfo::HitGroup hitGroup2;
+ 	hitGroup2.closestHitShader = "Shaders/rchit2.spv";
+
+	rayTracingPassCreateInfo.hitGroups = { hitGroup, hitGroup2 };
 
 	// Descriptor set
 	DescriptorSetGenerator descriptorSetGenerator;

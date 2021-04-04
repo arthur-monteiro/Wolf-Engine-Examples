@@ -18,6 +18,7 @@ namespace Wolf
 	struct RendererCreateInfo
 	{
 		int renderPassID;
+		int forceRendererID = -1;
 
 		// Pipeline
 		RenderingPipelineCreateInfo pipelineCreateInfo;
@@ -41,6 +42,7 @@ namespace Wolf
 			// Links
 			int renderPassID;
 			int rendererID;
+			int frameBufferID = 0;
 
 			// IA
 			VertexBuffer vertexBuffer;
@@ -57,12 +59,14 @@ namespace Wolf
 		};
 		int addMesh(AddMeshInfo addMeshInfo);
 
+		void updateVertexBuffer(int id, VertexBuffer& vertexBuffer);
+
 		void create(VkDescriptorPool descriptorPool);
 
 		void setViewport(std::array<float, 2> viewportScale, std::array<float, 2> viewportOffset);	
 
 		VkPipeline getPipeline() { return m_pipeline->getPipeline(); }
-		std::vector<std::tuple<VertexBuffer, InstanceBuffer, VkDescriptorSet>> getMeshes();
+		std::vector<std::tuple<VertexBuffer, InstanceBuffer, VkDescriptorSet>> getMeshes(int framebufferID = 0);
 		std::vector<AddMeshInfo> getMeshInfos() { return m_meshes; }
 		VkPipelineLayout getPipelineLayout() { return m_pipeline->getPipelineLayout(); }
 		RendererCreateInfo getRendererCreateInfoStructure();

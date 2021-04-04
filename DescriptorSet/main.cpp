@@ -107,6 +107,7 @@ int main()
 	DescriptorSetGenerator descriptorSetGenerator{};
 	descriptorSetGenerator.addUniformBuffer(uniformBuffer, VK_SHADER_STAGE_VERTEX_BIT, 0);
 	descriptorSetGenerator.addCombinedImageSampler(image, sampler, VK_SHADER_STAGE_FRAGMENT_BIT, 1);
+	descriptorSetGenerator.addBuffer(nullptr, VK_SHADER_STAGE_FRAGMENT_BIT, 8);
 
 	// Get layouts
 	rendererCreateInfo.descriptorLayouts = descriptorSetGenerator.getDescriptorLayouts();

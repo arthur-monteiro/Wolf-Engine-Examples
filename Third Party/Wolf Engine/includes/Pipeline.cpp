@@ -1,6 +1,7 @@
 #include "Pipeline.h"
 
 #include <fstream>
+#include <filesystem>
 
 #include "Debug.h"
 
@@ -16,7 +17,7 @@ Wolf::Pipeline::Pipeline(VkDevice device, RenderingPipelineCreateInfo renderingP
 	pipelineLayoutInfo.pushConstantRangeCount = 0;
 
 	if (vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
-		throw std::runtime_error("Error : create pipeline layout");
+		Debug::sendError("Error : create pipeline layout");
 
 	/* Shaders */
 	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
@@ -181,7 +182,7 @@ Wolf::Pipeline::Pipeline(VkDevice device, RenderingPipelineCreateInfo renderingP
 		rasterizer.pNext = &conservativeRasterStateCI;
 	}
 
-	// Tesselation
+	// Tessellation
 	if(renderingPipelineCreateInfo.patchControlPoint > 0)
 	{
 		VkPipelineTessellationStateCreateInfo tessellationStateCreateInfo{};
@@ -192,7 +193,7 @@ Wolf::Pipeline::Pipeline(VkDevice device, RenderingPipelineCreateInfo renderingP
 	}
 
 	if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_pipeline) != VK_SUCCESS)
-		throw std::runtime_error("Error : graphic pipeline creation");
+		Debug::sendError("Error : graphic pipeline creation");
 
 	for(auto& shaderModule : shaderModules)
 		vkDestroyShaderModule(m_device, shaderModule, nullptr);
@@ -224,7 +225,7 @@ Wolf::Pipeline::Pipeline(VkDevice device, std::string computeShader, VkDescripto
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
 	if (vkCreateComputePipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_pipeline) != VK_SUCCESS)
-		throw std::runtime_error("Error : create compute pipeline");
+		Debug::sendError("Error : create compute pipeline");
 }
 
 Wolf::Pipeline::~Pipeline()
@@ -252,7 +253,7 @@ std::vector<char> Wolf::Pipeline::readFile(const std::string& filename)
 	if (!file.is_open())
 		Debug::sendError("Error opening file : " + filename);
 
-	size_t fileSize = (size_t)file.tellg();
+	size_t fileSize = std::filesystem::file_size(filename);
 	std::vector<char> buffer(fileSize);
 
 	file.seekg(0);
@@ -272,7 +273,7 @@ VkShaderModule Wolf::Pipeline::createShaderModule(const std::vector<char>& code,
 
 	VkShaderModule shaderModule;
 	if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
-		throw std::runtime_error("Error : create shader module");
+		Debug::sendError("Error : create shader module");
 
 	return shaderModule;
 }

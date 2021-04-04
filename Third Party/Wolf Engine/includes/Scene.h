@@ -42,10 +42,15 @@ namespace Wolf
 		{
 			int commandBufferID;
 			bool outputIsSwapChain = false;
+			std::string name = "Unknown render pass";
 
 			// Output
 			std::vector<RenderPassOutput> outputs;
 			VkExtent2D extent = { 0, 0 };
+			int framebufferCount = 1;
+
+			std::function<void(void*, VkCommandBuffer)> beforeRecord = nullptr; void* dataForBeforeRecordCallback = nullptr;
+			std::function<void(void*, VkCommandBuffer)> afterRecord = nullptr; void* dataForAfterRecordCallback = nullptr;
 		};
 		int addRenderPass(RenderPassCreateInfo createInfo, int forceID = -1);
 
@@ -56,6 +61,7 @@ namespace Wolf
 			uint32_t outputBinding = 0;
 			VkExtent2D extent;
 			VkExtent3D dispatchGroups;
+			std::string name = "Unknown compute pass";
 			
 			std::string computeShaderPath;
 
@@ -73,12 +79,25 @@ namespace Wolf
 			int commandBufferID;
 			bool outputIsSwapChain = false;
 			uint32_t outputBinding = 0;
-			VkExtent2D extent;
+			VkExtent3D extent;
 
 			std::function<void(void*, VkCommandBuffer)> beforeRecord = nullptr; void* dataForBeforeRecordCallback = nullptr;
 			std::function<void(void*, VkCommandBuffer)> afterRecord = nullptr; void* dataForAfterRecordCallback = nullptr;
 		};
 		int addRayTracingPass(RayTracingPassAddInfo rayTracingPassAddInfo);
+
+		struct TransferAddInfo
+		{
+			int commandBufferID;
+			bool outputIsSwapChain = false;
+
+			Image* origin = nullptr;
+			Image* destination = nullptr;
+
+			std::function<void(void*, VkCommandBuffer)> beforeRecord = nullptr; void* dataForBeforeRecordCallback = nullptr;
+			std::function<void(void*, VkCommandBuffer)> afterRecord = nullptr; void* dataForAfterRecordCallback = nullptr;
+		};
+		int addTransfer(TransferAddInfo transferAddInfo);
 
 		struct CommandBufferCreateInfo
 		{
@@ -90,6 +109,8 @@ namespace Wolf
 		int addRenderer(RendererCreateInfo createInfo);
 
 		void addMesh(Renderer::AddMeshInfo addMeshInfo);
+
+		void updateVertexBuffer(int renderPassID, int rendererID, int meshID, VertexBuffer& vertexBuffer);
 
 		struct AddTextInfo
 		{
@@ -107,12 +128,12 @@ namespace Wolf
 		void record();
 		
 		void frame(Queue graphicsQueue, Queue computeQueue, uint32_t swapChainImageIndex, Semaphore* imageAvailableSemaphore, std::vector<int> commandBufferIDs,
-		           const std::vector<std::pair<int, int>>&);
+		           const std::vector<std::pair<int, int>>& commandBufferSynchronization, bool submitSwapchainCommandBuffer = true);
 
 		void resize(std::vector<Image*> swapChainImages);
 
 		VkSemaphore getSwapChainSemaphore() const { return m_swapChainCompleteSemaphore->getSemaphore(); }
-		Image* getRenderPassOutput(int renderPassID, int textureID) { return m_sceneRenderPasses[renderPassID].renderPass->getImages(0)[textureID]; }		
+		Image* getRenderPassOutput(int renderPassID, int textureID, int framebufferID = 0) { return m_sceneRenderPasses[renderPassID].renderPass->getImages(framebufferID)[textureID]; }
 
 	private:
 		// Command Pools
@@ -148,6 +169,8 @@ namespace Wolf
 		// RenderPasses
 		struct SceneRenderPass
 		{
+			std::string name = "Unknown render pass";
+
 			std::unique_ptr<RenderPass> renderPass;
 			int commandBufferID;
 
@@ -157,17 +180,23 @@ namespace Wolf
 
 			std::vector<std::unique_ptr<Renderer>> renderers;
 
-			SceneRenderPass(int commandBufferID, std::vector<RenderPassOutput> outputs, bool outputIsSwapChain)
+			std::function<void(void*, VkCommandBuffer)> beforeRecord = nullptr; void* dataForBeforeRecordCallback = nullptr;
+			std::function<void(void*, VkCommandBuffer)> afterRecord = nullptr; void* dataForAfterRecordCallback = nullptr;
+
+			SceneRenderPass(int commandBufferID, std::vector<RenderPassOutput> outputs, bool outputIsSwapChain, std::string name)
 			{
 				this->outputs = std::move(outputs);
 				this->outputIsSwapChain = outputIsSwapChain;
 				this->commandBufferID = commandBufferID;
+				this->name = name;
 			}
 		};
 		std::vector<SceneRenderPass> m_sceneRenderPasses;
 
 		struct SceneComputePass
 		{
+			std::string name = "Unknown compute pass";
+
 			std::vector<std::unique_ptr<ComputePass>> computePasses;
 			int commandBufferID;
 			
@@ -179,10 +208,11 @@ namespace Wolf
 			std::function<void(void*, VkCommandBuffer)> beforeRecord = nullptr; void* dataForBeforeRecordCallback = nullptr;
 			std::function<void(void*, VkCommandBuffer)> afterRecord = nullptr; void* dataForAfterRecordCallback = nullptr;
 
-			SceneComputePass(int commandBufferID, bool outputIsSwapChain)
+			SceneComputePass(int commandBufferID, bool outputIsSwapChain, std::string name)
 			{
 				this->outputIsSwapChain = outputIsSwapChain;
 				this->commandBufferID = commandBufferID;
+				this->name = name;
 			}
 		};
 		std::vector<SceneComputePass> m_sceneComputePasses;
@@ -195,7 +225,7 @@ namespace Wolf
 
 			bool outputIsSwapChain = false;
 			uint32_t outputBinding = 0;
-			VkExtent2D extent;
+			VkExtent3D extent;
 
 			std::function<void(void*, VkCommandBuffer)> beforeRecord = nullptr; void* dataForBeforeRecordCallback = nullptr;
 			std::function<void(void*, VkCommandBuffer)> afterRecord = nullptr; void* dataForAfterRecordCallback = nullptr;
@@ -207,6 +237,19 @@ namespace Wolf
 			}
 		};
 		std::vector<SceneRayTracingPass> m_sceneRayTracingPasses;
+
+		struct SceneTransfer
+		{
+			int commandBufferID;
+			bool outputIsSwapChain = false;
+
+			Image* origin = nullptr;
+			Image* destination = nullptr;
+
+			std::function<void(void*, VkCommandBuffer)> beforeRecord = nullptr; void* dataForBeforeRecordCallback = nullptr;
+			std::function<void(void*, VkCommandBuffer)> afterRecord = nullptr; void* dataForAfterRecordCallback = nullptr;
+		};
+		std::vector<SceneTransfer> m_sceneTransfers;
 		
 		// VR
 		bool m_useOVR = false;

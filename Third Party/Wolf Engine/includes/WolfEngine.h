@@ -12,6 +12,7 @@
 #include "Text.h"
 #include "OVR.h"
 #include "AccelerationStructure.h"
+#include "Buffer.h"
 
 #include "Model2D.h"
 #include "Model2DTextured.h"
@@ -46,15 +47,17 @@ namespace Wolf
 		template<typename T>
 		Instance<T>* createInstanceBuffer();
 		UniformBuffer* createUniformBufferObject(void* data, VkDeviceSize size);
-		
+		Buffer* createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryPropertyFlags);
 		[[deprecated("Use createImage instead")]]
 		Texture* createTexture();
 
 		// Image creation
 		Image* createImageFromFile(std::string filename);
+		Image* createImage(VkExtent3D extent, VkImageUsageFlags usage, VkFormat format, VkSampleCountFlagBits sampleCount, VkImageAspectFlags aspect);
+		Image* createCubemapFromImages(std::array<Image*, 6> images);
 
 		// Sampler creation
-		Sampler* createSampler(VkSamplerAddressMode addressMode, float mipLevels, VkFilter filter, float maxAnisotropy = 16.0f);
+		Sampler* createSampler(VkSamplerAddressMode addressMode, float mipLevels, VkFilter filter, float maxAnisotropy = 16.0f, float minLod = 0.0f, float mipLodBias = 0.0f);
 		
 		Font* createFont(int ySize, std::string path);
 		Text* createText();
@@ -63,6 +66,7 @@ namespace Wolf
 
 		void updateOVR();
 		void frame(Scene* scene, std::vector<int> commandBufferIDs, std::vector<std::pair<int, int>> commandBufferSynchronisation);
+		void submitCommandBuffers(Scene* scene, std::vector<int> commandBufferIDs, std::vector<std::pair<int, int>> commandBufferSynchronisation);
 		bool windowShouldClose();
 
 		void waitIdle();
@@ -73,10 +77,12 @@ namespace Wolf
 	public:
 		GLFWwindow* getWindowPtr() { return m_window->getWindow(); }
 		ovrSession getOVRSession() { return m_vulkan->getOVRSession(); }
-		std::array < glm::mat4, 2> getVRProjMatrices() { return m_ovr->getProjMatrices(); }
-		std::array < glm::mat4, 2> getVRViewMatrices() { return m_ovr->getViewMatrices(); }
+		std::array < glm::mat4, 2>& getVRProjMatrices() { return m_ovr->getProjMatrices(); }
+		std::array < glm::mat4, 2>& getVRViewMatrices() { return m_ovr->getViewMatrices(); }
+		std::array < glm::vec3, 2>& getVREyePositions() { return m_ovr->getEyePostions(); }
+		std::array < glm::vec3, 2>& getVREyeDirections() { return m_ovr->getEyeDirections(); }
 		void setVRPlayerPosition(glm::vec3 playerPosition) { m_ovr->setPlayerPos(playerPosition); }
-		VkExtent2D getWindowSize() { return { m_swapChain->getImages()[0]->getExtent().width, m_swapChain->getImages()[0]->getExtent().height }; }
+		VkExtent2D getWindowSize();
 
 	private:
 		static void windowResizeCallback(void* systemManagerInstance, int width, int height)
@@ -104,6 +110,7 @@ namespace Wolf
 		std::vector<std::unique_ptr<Font>> m_fonts;
 		std::vector<std::unique_ptr<Text>> m_texts;
 		std::vector<std::unique_ptr<AccelerationStructure>> m_accelerationStructures;
+		std::vector<std::unique_ptr<Buffer>> m_buffers;
 
 		bool m_needResize = false;
 

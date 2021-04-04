@@ -1,0 +1,59 @@
+#version 450
+
+layout (local_size_x = 16, local_size_y = 1, local_size_z = 1) in;
+
+struct ParticleInfo
+{
+    vec4 positionBornTime;
+	vec4 velocityLifeTime;
+};
+layout (std430, binding = 0) buffer particleBuffer 
+{
+    ParticleInfo particleInfo[1000];    
+}; 
+layout(binding = 1, std140) uniform readonly UniformBufferFrame
+{
+    float frameTime;
+    float fullTime;
+} ubFrame;
+
+float rand(vec2 co)
+{
+    return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453);
+}
+
+float MAX_LIFE_TIME = 2000.0;
+float MAX_DIE_TIME = 500.0;
+
+void main() 
+{
+    vec3 currentPos = particleInfo[gl_GlobalInvocationID.x].positionBornTime.xyz;
+    vec3 currentVel = particleInfo[gl_GlobalInvocationID.x].velocityLifeTime.xyz;
+    float currentBornTime = particleInfo[gl_GlobalInvocationID.x].positionBornTime.w;
+    float currentLifeTime = particleInfo[gl_GlobalInvocationID.x].velocityLifeTime.w;
+
+    float randNumber1 = rand(vec2(gl_GlobalInvocationID.x, ubFrame.fullTime));
+    float randNumber2 = rand(vec2(ubFrame.fullTime, gl_GlobalInvocationID.x));
+    float randNumber3 = rand(vec2(gl_GlobalInvocationID.x + 1, ubFrame.fullTime + 1));
+    float randNumber4 = rand(vec2(ubFrame.fullTime + 1, gl_GlobalInvocationID.x + 1));
+    float randNumber5 = rand(vec2(gl_GlobalInvocationID.x + 2, ubFrame.fullTime + 2));
+    float randNumber6 = rand(vec2(ubFrame.fullTime + 2, gl_GlobalInvocationID.x + 2));
+
+    // Particle will die
+    if(currentBornTime >= currentLifeTime)
+    {
+        particleInfo[gl_GlobalInvocationID.x].positionBornTime.w = -randNumber1 * MAX_DIE_TIME;
+        particleInfo[gl_GlobalInvocationID.x].velocityLifeTime.w = randNumber2 * MAX_LIFE_TIME + 1000.0;
+        particleInfo[gl_GlobalInvocationID.x].positionBornTime.xyz = vec3(0.0);
+        particleInfo[gl_GlobalInvocationID.x].velocityLifeTime.xyz = vec3(randNumber3 * 2.0 - 1.0, -(randNumber4 * 3.0 + 2.0), randNumber5 * 2.0 - 1.0);
+    }
+    else // particle update
+    {
+        particleInfo[gl_GlobalInvocationID.x].positionBornTime.w += ubFrame.frameTime;
+        if(particleInfo[gl_GlobalInvocationID.x].positionBornTime.w < 0.0)
+            return;
+        
+        particleInfo[gl_GlobalInvocationID.x].positionBornTime.xyz = currentPos + currentVel * (ubFrame.frameTime / 1000.0);
+        particleInfo[gl_GlobalInvocationID.x].velocityLifeTime.xyz = currentVel + vec3(0.0, 9.81, 0.0) * (ubFrame.frameTime / 1000.0);
+    }
+} 

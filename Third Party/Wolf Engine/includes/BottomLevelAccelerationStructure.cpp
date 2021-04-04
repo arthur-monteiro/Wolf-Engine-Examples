@@ -8,6 +8,7 @@ Wolf::BottomLevelAccelerationStructure::BottomLevelAccelerationStructure(VkDevic
 	m_physicalDevice = physicalDevice;
 	m_commandPool = commandPool;
 	m_commandBuffer = commandBuffer;
+	m_transformMatrix = bottomLevelAccelerationStructureCreateInfo.geometryInfos[0].transform;
 	
 	m_vertexBuffers.resize(bottomLevelAccelerationStructureCreateInfo.geometryInfos.size());
 

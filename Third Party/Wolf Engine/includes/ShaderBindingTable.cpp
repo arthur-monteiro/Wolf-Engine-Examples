@@ -36,6 +36,7 @@ Wolf::ShaderBindingTable::ShaderBindingTable(VkDevice device, VkPhysicalDevice p
 	{
 		memcpy(data, shaderHandleStorage.data() + index * groupHandleSize, groupHandleSize);
 		data += m_baseAlignement;
+		index++;
 	}
 
 	// Unmap the SBT

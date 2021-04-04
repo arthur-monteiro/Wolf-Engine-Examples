@@ -11,12 +11,15 @@ namespace Wolf
 		VkFormat format;
 		VkSampleCountFlagBits sampleCount;
 		VkImageLayout finalLayout;
+		VkAttachmentLoadOp loadOperation = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		VkAttachmentStoreOp storeOperation;
 
 		VkImageUsageFlags usageType{};
 
+		Image* image = nullptr;
+
 		Attachment(VkExtent2D extent, VkFormat format, VkSampleCountFlagBits sampleCount, VkImageLayout finalLayout,
-		           VkAttachmentStoreOp storeOperation, VkImageUsageFlags usageType);
+		           VkAttachmentStoreOp storeOperation, VkImageUsageFlags usageType, Image* image = nullptr);
 		Attachment(): format(), sampleCount(), finalLayout(), storeOperation()
 		{
 		}

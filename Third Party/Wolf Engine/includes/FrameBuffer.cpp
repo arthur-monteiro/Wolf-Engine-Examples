@@ -1,6 +1,7 @@
 #include "Framebuffer.h"
 
-bool Wolf::Framebuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkRenderPass renderPass, VkExtent2D extent, std::vector<Attachment> attachments)
+bool Wolf::Framebuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, Queue graphicsQueue, 
+	VkRenderPass renderPass, VkExtent2D extent, std::vector<Attachment> attachments)
 {
 	m_extent = extent;
 	m_images.resize(attachments.size());
@@ -14,9 +15,17 @@ bool Wolf::Framebuffer::initialize(VkDevice device, VkPhysicalDevice physicalDev
 		else
 			aspect = VK_IMAGE_ASPECT_DEPTH_BIT;
 
-		VkExtent3D extent3D = { extent.width, extent.height, 1 };
-		m_images[i] = std::make_unique<Image>(device, physicalDevice, extent3D, attachments[i].usageType, attachments[i].format, attachments[i].sampleCount, aspect);
-		imageViewAttachments[i] = m_images[i]->getImageView();
+		if (attachments[i].image)
+		{
+			m_images[i] = std::unique_ptr<Image>(attachments[i].image);
+			imageViewAttachments[i] = m_images[i]->getImageView();
+		}
+		else
+		{
+			VkExtent3D extent3D = { extent.width, extent.height, 1 };
+			m_images[i] = std::make_unique<Image>(device, physicalDevice, commandPool, graphicsQueue, extent3D, attachments[i].usageType, attachments[i].format, attachments[i].sampleCount, aspect);
+			imageViewAttachments[i] = m_images[i]->getImageView();
+		}
 	}
 
 	VkFramebufferCreateInfo framebufferInfo = {};
@@ -31,7 +40,8 @@ bool Wolf::Framebuffer::initialize(VkDevice device, VkPhysicalDevice physicalDev
 	return vkCreateFramebuffer(device, &framebufferInfo, nullptr, &m_framebuffer) != VK_SUCCESS;
 }
 
-bool Wolf::Framebuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkRenderPass renderPass, Image* image, std::vector<Attachment> attachments)
+bool Wolf::Framebuffer::initialize(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, Queue graphicsQueue, 
+	VkRenderPass renderPass, Image* image, std::vector<Attachment> attachments)
 {
 	m_extent = { image->getExtent().width, image->getExtent().height };
 
@@ -68,7 +78,7 @@ bool Wolf::Framebuffer::initialize(VkDevice device, VkPhysicalDevice physicalDev
 				aspect = VK_IMAGE_ASPECT_DEPTH_BIT;
 
 			VkExtent3D extent = { image->getExtent().width, image->getExtent().height, 1 };
-			m_images[currentImage] = std::make_unique<Image>(device, physicalDevice, extent, attachments[i].usageType, attachments[i].format, 
+			m_images[currentImage] = std::make_unique<Image>(device, physicalDevice, commandPool, graphicsQueue, extent, attachments[i].usageType, attachments[i].format, 
 				attachments[i].sampleCount, aspect);
 
 			imageViewAttachments[i] = m_images[currentImage]->getImageView();
